@@ -1,100 +1,200 @@
-Credit Card Fraud Detection
-Overview
+# Credit Card Fraud Detection API
 
-Credit card fraud has become one of the biggest challenges in the financial industry. Detecting fraudulent transactions quickly and accurately is essential to protect customers and reduce financial losses.
+An end-to-end Machine Learning project for detecting fraudulent credit card transactions using an ensemble classification model, served through FastAPI and containerized with Docker.
 
-In this project, we use machine learning techniques to analyze anonymized credit card transaction data and classify each transaction as either fraudulent or genuine. The dataset contains transactions that have been transformed to protect sensitive information while preserving the patterns needed for analysis.
+## Overview
 
-The goal is to build a reliable fraud detection model that can identify suspicious activities and help financial institutions take preventive actions.
+Credit card fraud detection is a challenging machine learning problem because fraudulent transactions represent a very small proportion of total transactions.
 
-Dataset Description
+This project builds a machine learning pipeline that classifies anonymized credit card transactions as:
 
-The dataset consists of anonymized credit card transactions with the following characteristics:
+- `0` – Legitimate transaction
+- `1` – Fraudulent transaction
 
-Features have been transformed and anonymized to protect customer privacy.
-Each transaction is labeled as:
-0 → Genuine Transaction
-1 → Fraudulent Transaction
-The dataset is highly imbalanced, meaning fraudulent transactions represent only a small percentage of all transactions.
+The trained model is deployed as a REST API, allowing external applications to submit transaction features and receive fraud predictions and probability scores.
 
-This imbalance makes fraud detection a challenging machine learning problem and requires careful model evaluation.
+## Key Features
 
-Project Objectives
+- Exploratory Data Analysis (EDA)
+- Handling highly imbalanced datasets
+- Feature selection
+- Hybrid resampling using SMOTE and Random Undersampling
+- Feature scaling using MinMaxScaler
+- Ensemble classification using VotingClassifier
+- Threshold-based classification
+- REST API development using FastAPI
+- Request validation using Pydantic
+- Docker containerization
+- Health check endpoint
 
-The main objectives of this project are:
+## Technology Stack
 
-Explore and understand transaction patterns.
-Analyze class imbalance in the dataset.
-Preprocess and prepare data for machine learning.
-Train and compare different classification models.
-Evaluate model performance using appropriate metrics.
-Detect fraudulent transactions with high accuracy and recall.
-Technologies Used
-Python
-NumPy
-Pandas
-Matplotlib
-Seaborn
-Scikit-learn
-Jupyter Notebook
-Project Workflow
-1. Data Exploration
-Load and inspect the dataset.
-Check for missing values.
-Analyze class distribution.
-Visualize important patterns and correlations.
-2. Data Preprocessing
-Handle any data quality issues.
-Scale numerical features when necessary.
-Split the dataset into training and testing sets.
-3. Model Training
+| Category | Technologies |
+|---|---|
+| Programming | Python |
+| Data Processing | Pandas, NumPy |
+| Machine Learning | Scikit-learn, XGBoost, CatBoost |
+| Imbalanced Data | SMOTE, Random Undersampling |
+| Visualization | Matplotlib, Seaborn |
+| API Development | FastAPI, Pydantic |
+| API Testing | Swagger UI, Python Requests |
+| Deployment | Docker |
+| Development | Jupyter Notebook, VS Code |
 
-Several machine learning algorithms can be applied, including:
+## Machine Learning Pipeline
 
-Logistic Regression
-Random Forest
-Decision Tree
-XGBoost (if available)
-Support Vector Machine (SVM)
-4. Model Evaluation
+The project follows these main stages:
 
-Because fraud detection datasets are usually imbalanced, accuracy alone is not sufficient.
+1. **Data Exploration:** Analyze transaction distributions, missing values, class imbalance, and feature patterns.
+2. **Feature Selection:** Select the following 10 features based on the notebook analysis:
 
-Important evaluation metrics include:
+   `V17, V14, V12, V10, V16, V7, V3, V11, V4, V18`
 
-Precision
-Recall
-F1-Score
-ROC-AUC Score
-Confusion Matrix
-5. Fraud Detection
+3. **Data Balancing:** Apply SMOTE followed by Random Undersampling to address class imbalance.
+4. **Feature Scaling:** Use MinMaxScaler, fitted on the original training data.
+5. **Model Training:** Train an ensemble VotingClassifier.
+6. **Threshold Optimization:** Use a classification threshold of approximately `0.74455`.
+7. **Model Evaluation:** Evaluate using metrics suitable for imbalanced classification, including Precision, Recall, F1-Score, ROC-AUC, and Confusion Matrix.
 
-The trained model predicts whether a transaction is fraudulent or legitimate and helps identify potentially suspicious activities.
+## API Endpoints
 
-Results
+The trained model and preprocessing scaler are loaded from `model.pkl`.
 
-The performance of the models was evaluated using classification metrics suitable for imbalanced datasets. The final model demonstrated the ability to detect fraudulent transactions while minimizing false alarms.
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/health` | Check API health |
+| POST | `/predict` | Predict whether a transaction is fraudulent |
 
-Key findings:
+### Example Prediction Request
 
-Fraudulent transactions are significantly rarer than genuine transactions.
-Proper preprocessing and evaluation techniques improve model performance.
-Recall is especially important because missing a fraudulent transaction can be costly.
-Future Improvements
+```json
+{
+  "V17": -1,
+  "V14": -1,
+  "V12": -1,
+  "V10": -1,
+  "V16": -1,
+  "V7": -1,
+  "V3": -1,
+  "V11": -1,
+  "V4": -1,
+  "V18": -1
+}
+```
 
-Potential enhancements for this project include:
+### Example Response
 
-Applying advanced resampling techniques such as SMOTE.
-Using ensemble learning methods.
-Implementing deep learning approaches.
-Deploying the model as a web application.
-Integrating real-time fraud detection systems.
-Conclusion
+```json
+{
+  "prediction": 0,
+  "result": "Legitimate",
+  "fraud_probability": 0.0667,
+  "threshold": 0.7445532313170999
+}
+```
 
-This project demonstrates how machine learning can be used to identify fraudulent credit card transactions in an anonymized dataset. By leveraging data analysis, preprocessing techniques, and classification models, we can build systems that help financial institutions detect fraud more effectively and improve transaction security.
+The response includes:
 
-Author
+- `prediction`: Predicted class (0 or 1).
+- `result`: Human-readable classification.
+- `fraud_probability`: Estimated probability of fraud.
+- `threshold`: Decision threshold used for classification.
 
-Mahmoud Nashaat
-Computer & Artificial Intelligence Engineering Student
-Full-Stack .NET Developer | Machine Learning Enthusiast
+## Running with Docker
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/MahmoudNashat950/credit_fraud_project.git
+
+cd credit_fraud_project
+```
+
+### 2. Build the Docker image
+
+```bash
+docker build -t credit-fraud-api:v1 .
+```
+
+### 3. Run the container
+
+```bash
+docker run -d \
+  --name credit-fraud-container \
+  -p 8000:8000 \
+  credit-fraud-api:v1
+```
+
+### 4. Check API health
+
+Open:
+
+`http://localhost:8000/health`
+
+Expected response:
+
+```json
+{
+  "status": "healthy"
+}
+```
+
+### 5. Access API documentation
+
+Open:
+
+`http://localhost:8000/docs`
+
+Use Swagger UI to test the prediction endpoint.
+
+## Testing
+
+The API has been tested with:
+
+- Successful health check requests (`200 OK`).
+- Valid prediction requests (`200 OK`).
+- Missing required features (`422 Unprocessable Entity`).
+- Invalid feature data types (`422 Unprocessable Entity`).
+- External Python HTTP requests to the Dockerized API.
+
+## Project Structure
+
+```text
+credit_fraud_project/
+│
+├── app.py
+├── credit_fraud_train.py
+├── credit_fraud_utils_data.py
+├── credit_fraud_utils_eval.py
+├── fraud_exploration.ipynb
+├── model.pkl
+├── requirements.txt
+├── Dockerfile
+├── .dockerignore
+└── README.md
+```
+
+## Future Improvements
+
+- Add automated unit and integration tests.
+- Introduce CI/CD pipelines.
+- Deploy the API to a cloud platform.
+- Add monitoring and logging.
+- Implement model performance and data drift monitoring.
+- Add batch prediction support.
+- Improve reproducibility of model training and evaluation.
+
+## Limitations
+
+- The model uses anonymized transaction features.
+- Predictions depend on the selected feature set and the training distribution.
+- The current API is a model-serving prototype, not a production banking fraud prevention system.
+- Real-world performance should be validated using an independent test dataset.
+
+## Author
+
+**Mahmoud Nashaat**
+
+Software Engineering Student | Machine Learning & Data Engineering
+
+GitHub: [MahmoudNashat950](https://github.com/MahmoudNashat950)
