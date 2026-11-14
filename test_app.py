@@ -1,3 +1,5 @@
+from unittest import result
+
 from fastapi.testclient import TestClient
 from app import app
 
@@ -34,8 +36,7 @@ def test_predict_valid_transaction():
     assert result["prediction"] in [0, 1]
     assert result["result"] in ["Fraud", "Legitimate"]
     assert 0 <= result["fraud_probability"] <= 1
-    assert result["threshold"] == 0.7445532313170999
-
+    assert result["threshold"] == 0.8677499218506227
 
 def test_predict_missing_features():
     response = client.post("/predict", json={"V17": -1})
